@@ -71,3 +71,8 @@ body {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+
+/* Los números de las tablas nunca se cortan en dos líneas (ej: "-PYG 930.313"). */
+td.text-right {
+  white-space: nowrap;
+}
