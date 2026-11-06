@@ -1,6 +1,6 @@
 // Tipos de dominio del tracker. Los montos siempre viajan con su moneda.
 
-export type Platform = "meta" | "tiktok";
+export type Platform = "meta" | "tiktok" | "google";
 export type PlatformFilter = Platform | "all";
 
 export type CurrencyCode = string; // ISO 4217, ej: "USD", "BRL", "EUR"

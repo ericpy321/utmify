@@ -129,7 +129,7 @@ export async function getDataset(f: Filters): Promise<Dataset> {
   const okRuns = runs.data ?? [];
   const spendSources = new Set<Platform>();
   for (const a of accounts) if (a.last_synced_at) spendSources.add(a.platform as Platform);
-  const lastSync = okRuns.find((r) => r.source === "meta" || r.source === "tiktok")?.finished_at;
+  const lastSync = okRuns.find((r) => r.source === "meta" || r.source === "tiktok" || r.source === "google")?.finished_at;
 
   const adLifetime = new Map<string, { spend: number; revenue: number; net: number; sales: number }>();
   for (const r of (lifetime.data ?? []) as Record<string, unknown>[]) {

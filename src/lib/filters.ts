@@ -49,7 +49,7 @@ export function parseFilters(sp: SP, settings: Settings, nowMs = Date.now()): Fi
   const prevFrom = addDays(prevTo, -(len - 1));
 
   const plat = one(sp.platform);
-  const platform: PlatformFilter = plat === "meta" || plat === "tiktok" ? plat : "all";
+  const platform: PlatformFilter = plat === "meta" || plat === "tiktok" || plat === "google" ? plat : "all";
 
   return {
     period, from, to, prevFrom, prevTo, tz, currency,

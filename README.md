@@ -1,6 +1,6 @@
 # Tracker de Ventas
 
-Panel propio que junta el gasto de Meta Ads y TikTok Ads con las ventas del gateway, en la misma zona horaria
+Panel propio que junta el gasto de Meta Ads, TikTok Ads y Google Ads con las ventas del gateway, en la misma zona horaria
 y la misma moneda, y muestra facturación, gasto, lucro, ROAS, ROI y CPA por campaña, conjunto y anuncio.
 Incluye el Creative Hub para medir la asertividad de cada tanda de creativos.
 

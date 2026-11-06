@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { loadPage } from "@/lib/page-context";
 import { fmt } from "@/lib/i18n/dictionaries";
 import { formatMoney, localeFor } from "@/lib/currency";
+import { platformLabel } from "@/lib/platforms";
 import { FilterBar } from "@/components/filter-bar";
 import { PageHeader, StatusPill } from "@/components/ui";
 
@@ -100,7 +101,7 @@ export default async function SalesPage({ searchParams }: PageProps<"/sales">) {
                   {s.currency !== f.currency && <div className="text-xs text-muted">{formatMoney(s.gross, s.currency, lang)}</div>}
                 </td>
                 <td className="px-3 py-2"><StatusPill status={s.status} label={statusLabel[s.status]} /></td>
-                <td className="px-3 py-2">{s.platform === "meta" ? "Meta" : s.platform === "tiktok" ? "TikTok" : "—"}</td>
+                <td className="px-3 py-2">{platformLabel(s.platform)}</td>
                 {tab === "all" ? (
                   <>
                     <td className="px-3 py-2">{s.campaignId ? camp.get(s.campaignId) : <span className="text-muted">{t.sales.unattributed}</span>}</td>

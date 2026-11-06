@@ -40,10 +40,11 @@ export const syncSecret = process.env.SYNC_SECRET ?? "";
 
 /** Secretos de cada gateway, para validar que el evento vino de ahí. */
 export const gatewaySecrets = {
-  digistore24: process.env.DIGISTORE24_IPN_PASSPHRASE ?? "",
   hotmart: process.env.HOTMART_HOTTOK ?? "",
-  kiwify: process.env.KIWIFY_WEBHOOK_TOKEN ?? "",
   stripe: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  whop: process.env.WHOP_WEBHOOK_SECRET ?? "",
+  digistore24: process.env.DIGISTORE24_IPN_PASSPHRASE ?? "",
+  kiwify: process.env.KIWIFY_WEBHOOK_TOKEN ?? "",
   clickbank: process.env.CLICKBANK_SECRET_KEY ?? "",
   generic: process.env.WEBHOOK_SECRET ?? "",
 };
@@ -54,3 +55,12 @@ export function siteUrl(fallbackHost?: string | null) {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   return fallbackHost ? `https://${fallbackHost}` : "";
 }
+
+/** Google Ads API: token de desarrollador (Centro de API de tu MCC) y cliente OAuth (Google Cloud). */
+export const googleDevToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "";
+export const googleClientId = process.env.GOOGLE_ADS_CLIENT_ID ?? "";
+export const googleClientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET ?? "";
+/** Opcional: id de tu cuenta administradora (MCC), solo números. */
+export const googleLoginCustomerId = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ?? "").replace(/\D/g, "");
+export const googleApiVersion = process.env.GOOGLE_ADS_API_VERSION || "v24";
+export const googleConfigured = Boolean(googleDevToken && googleClientId && googleClientSecret);

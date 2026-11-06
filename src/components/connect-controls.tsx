@@ -4,7 +4,7 @@ import { RefreshCw, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "./i18n";
 import { fmt } from "@/lib/i18n/dictionaries";
-import { findMetaAccounts, findTikTokAccounts, reprocess, setTracked, syncNow } from "@/app/(app)/connect/actions";
+import { findGoogleAccounts, findMetaAccounts, findTikTokAccounts, reprocess, setTracked, syncNow } from "@/app/(app)/connect/actions";
 
 type Act = () => Promise<{ ok: boolean; message: string; counts?: { ok: number; failed: number } }>;
 
@@ -27,9 +27,10 @@ function ActionButton({ action, label, busy, icon, done }: { action: Act; label:
   );
 }
 
-export function FindAccountsButton({ platform }: { platform: "meta" | "tiktok" }) {
+export function FindAccountsButton({ platform }: { platform: "meta" | "tiktok" | "google" }) {
   const { t } = useI18n();
-  return <ActionButton action={platform === "meta" ? findMetaAccounts : findTikTokAccounts} label={t.integ.findAccounts} icon={<Search className="size-4" />} done={(r) => `${t.integ.accounts}: ${r.message}`} />;
+  const action = platform === "meta" ? findMetaAccounts : platform === "google" ? findGoogleAccounts : findTikTokAccounts;
+  return <ActionButton action={action} label={t.integ.findAccounts} icon={<Search className="size-4" />} done={(r) => `${t.integ.accounts}: ${r.message}`} />;
 }
 
 export function SyncButton() {

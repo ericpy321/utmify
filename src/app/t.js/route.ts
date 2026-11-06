@@ -11,12 +11,13 @@ import type { NextRequest } from "next/server";
 //    (por ejemplo el de la VSL con retraso), con MutationObserver.
 // 3) Traduce al formato que cada gateway devuelve en el webhook:
 //    Digistore24 → custom · Hotmart → src y sck · Kiwify → utm_* y sck · Stripe → client_reference_id ·
-//    ClickBank → tid. La origen compacta es "f_<id del anuncio>" (Meta) o "t_<id>" (TikTok): cabe en cualquier campo.
+//    ClickBank → tid · Whop → utm_*. La origen compacta es "f_<id del anuncio>" (Meta), "t_<id>" (TikTok)
+//    o "g_<id>" (Google): cabe en cualquier campo.
 const SCRIPT = String.raw`(function(){
   if (window.__trk) return; window.__trk = 1;
-  var KEYS = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term","utm_id","fbclid","ttclid"];
+  var KEYS = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term","utm_id","fbclid","ttclid","gclid","gbraid","wbraid"];
   var NAME = "_trk", DAYS = 30;
-  var HOSTS = ["pay.hotmart.com","pay.kiwify.com.br","kiwify.app","digistore24.com","checkout-ds24.com","buy.stripe.com","checkout.stripe.com","pay.clickbank.net","clickbank.net"].concat(__EXTRA__);
+  var HOSTS = ["pay.hotmart.com","pay.kiwify.com.br","kiwify.app","digistore24.com","checkout-ds24.com","buy.stripe.com","checkout.stripe.com","pay.clickbank.net","clickbank.net","whop.com"].concat(__EXTRA__);
   function read(){
     try { var v = localStorage.getItem(NAME); if (v) return JSON.parse(v); } catch(e){}
     var m = document.cookie.match(new RegExp("(?:^|; )" + NAME + "=([^;]*)"));
@@ -44,7 +45,7 @@ const SCRIPT = String.raw`(function(){
   function compact(d){
     if (!d) return "";
     var src = (d.utm_source || "").toLowerCase();
-    var p = /^(tiktok|tt)/.test(src) || d.ttclid ? "t" : (/^(fb|facebook|ig|instagram|meta)/.test(src) || d.fbclid ? "f" : "");
+    var p = /^(tiktok|tt)/.test(src) || d.ttclid ? "t" : (/^(fb|facebook|ig|instagram|meta)/.test(src) || d.fbclid ? "f" : (/^(google|gads|adwords|youtube)/.test(src) || d.gclid || d.gbraid || d.wbraid ? "g" : ""));
     var id = /^\d{5,25}$/.test(d.utm_content || "") ? d.utm_content : (/^\d{5,25}$/.test(d.utm_campaign || "") ? d.utm_campaign : "");
     return p && id ? p + "_" + id : "";
   }

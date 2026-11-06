@@ -1,7 +1,7 @@
 import type { Platform } from "../types";
 
 // Lee el anuncio de origen de los parámetros que devolvió el gateway.
-// El script de rastreo manda la origen compacta como "f_<id del anuncio>" (Meta) o "t_<id>" (TikTok)
+// El script de rastreo manda la origen compacta como "f_<id del anuncio>" (Meta), "t_<id>" (TikTok) o "g_<id>" (Google)
 // en los campos que cada gateway devuelve (custom, sck, client_reference_id, tid…).
 export interface Attribution {
   platform: Platform | null;
@@ -11,20 +11,22 @@ export interface Attribution {
   sourcePage: string | null;
 }
 
-const COMPACT = /(?:^|[^a-z0-9])([ft])_(\d{5,25})(?:_(\d{5,25}))?(?:_(\d{5,25}))?/i;
+const COMPACT = /(?:^|[^a-z0-9])([ftg])_(\d{5,25})(?:_(\d{5,25}))?(?:_(\d{5,25}))?/i;
 const isId = (s?: string) => !!s && /^\d{5,25}$/.test(s);
 
 export function decodeCompact(v?: string | null): { platform: Platform; adId: string; adsetId?: string; campaignId?: string } | null {
   if (!v) return null;
   const m = COMPACT.exec(v);
   if (!m) return null;
-  return { platform: m[1].toLowerCase() === "f" ? "meta" : "tiktok", adId: m[2], adsetId: m[3], campaignId: m[4] };
+  const p = m[1].toLowerCase();
+  return { platform: p === "f" ? "meta" : p === "g" ? "google" : "tiktok", adId: m[2], adsetId: m[3], campaignId: m[4] };
 }
 
 export function platformFromSource(src?: string): Platform | null {
   const s = (src ?? "").toLowerCase();
   if (/^(fb|facebook|ig|instagram|meta)/.test(s)) return "meta";
   if (/^(tiktok|tt)/.test(s)) return "tiktok";
+  if (/^(google|gads|adwords|youtube)/.test(s)) return "google";
   return null;
 }
 

@@ -64,7 +64,7 @@ export function parseDate(v: unknown, tz = "UTC"): number | null {
 
 /** Junta los parámetros de rastreo que vengan sueltos o en un objeto. */
 export function collectTracking(...sources: unknown[]): Record<string, string> {
-  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id", "src", "sck", "xcod", "custom", "trackingkey", "campaignkey", "client_reference_id", "tid", "fbclid", "ttclid", "page"];
+  const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id", "src", "sck", "xcod", "custom", "trackingkey", "campaignkey", "client_reference_id", "tid", "fbclid", "ttclid", "gclid", "page"];
   const out: Record<string, string> = {};
   for (const s of sources) {
     if (!s || typeof s !== "object") continue;

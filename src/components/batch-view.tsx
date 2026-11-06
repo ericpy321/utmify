@@ -5,6 +5,7 @@ import { RulesEditor } from "./rules-editor";
 import { StatusPillClient } from "./status-pill-client";
 import { classify, type CreativeNumbers, type CreativeStatus } from "@/lib/creative-status";
 import { formatMoney, formatNumber } from "@/lib/currency";
+import { platformLabel } from "@/lib/platforms";
 import type { Settings } from "@/lib/types";
 import { setCreativeMeta } from "@/app/(app)/settings/actions";
 
@@ -89,7 +90,7 @@ export function BatchView({ creatives, finished, settings, currency, offerId, ed
                   </div>
                 </td>
                 <td className="px-3 py-2">{editable ? <MetaInput code={c.code} offerId={offerId} field="editor" value={c.editor} /> : c.editor ?? <span className="text-muted">—</span>}</td>
-                <td className="px-3 py-2">{c.platforms.map((p) => (p === "meta" ? "Meta" : "TikTok")).join(", ")}</td>
+                <td className="px-3 py-2">{c.platforms.map(platformLabel).join(", ")}</td>
                 <td className="px-3 py-2 text-right">{formatNumber(c.sales, lang)}</td>
                 <td className="px-3 py-2 text-right">{money(c.cpa)}</td>
                 <td className="px-3 py-2 text-right">{money(c.spend)}</td>

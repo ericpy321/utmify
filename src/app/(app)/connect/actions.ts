@@ -5,6 +5,7 @@ import { serviceConfigured } from "@/lib/env";
 import { admin } from "@/lib/supabase/admin";
 import { discoverMetaAccounts } from "@/lib/sync/meta";
 import { discoverTikTokAccounts } from "@/lib/sync/tiktok";
+import { discoverGoogleAccounts } from "@/lib/sync/google";
 import { runSync } from "@/lib/sync/run";
 import { reprocessEvents } from "@/lib/webhooks/reprocess";
 
@@ -25,6 +26,15 @@ export async function findTikTokAccounts(): Promise<Result> {
   await requireUser();
   try {
     const n = await discoverTikTokAccounts();
+    revalidatePath("/connect");
+    return { ok: true, message: String(n) };
+  } catch (e) { return fail(e); }
+}
+
+export async function findGoogleAccounts(): Promise<Result> {
+  await requireUser();
+  try {
+    const n = await discoverGoogleAccounts();
     revalidatePath("/connect");
     return { ok: true, message: String(n) };
   } catch (e) { return fail(e); }

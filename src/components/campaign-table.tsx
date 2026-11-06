@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Fragment, useState } from "react";
 import { useI18n } from "./i18n";
 import { formatMoney, formatNumber, formatPct } from "@/lib/currency";
+import { platformLabel } from "@/lib/platforms";
 
 interface M { spend: number; revenue: number; sales: number; profit: number; roas: number | null; roi: number | null; cpa: number | null }
 interface AdRow { id: string; name: string; status: string; m: M }
@@ -56,7 +57,7 @@ export function CampaignTable({ rows, currency }: { rows: CampRow[]; currency: s
                     <ChevronRight className={`size-4 shrink-0 transition ${open[c.id] ? "rotate-90" : ""}`} />
                     <span>{c.name}</span>
                   </button>
-                  <div className="pl-5 text-xs text-muted">{c.platform === "meta" ? "Meta" : "TikTok"} · {c.account}</div>
+                  <div className="pl-5 text-xs text-muted">{platformLabel(c.platform)} · {c.account}</div>
                 </td>
                 <td className="px-3 py-2 text-xs">{status(c.status)}</td>
                 <td className="px-3 py-2 text-right text-xs text-muted">{c.budget == null ? "—" : formatMoney(c.budget, c.currency, lang, true)}</td>

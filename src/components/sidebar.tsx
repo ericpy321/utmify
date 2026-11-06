@@ -6,6 +6,7 @@ import { BarChart3, Gauge, Layers, LogOut, Moon, Plug, Receipt, Settings, Sparkl
 import { useI18n } from "./i18n";
 import { LANG_LABEL, LANGS } from "@/lib/i18n/dictionaries";
 import { setLang } from "@/app/actions";
+import { PLATFORM_LABEL, PLATFORMS } from "@/lib/platforms";
 
 // Parámetros que se conservan al navegar entre pantallas.
 const KEEP = ["platform", "period", "from", "to", "tz", "cur", "account", "offer"];
@@ -61,14 +62,14 @@ export function Sidebar({ email, demo }: { email: string | null; demo: boolean }
       </div>
 
       {/* Cambio de plataforma: arriba de todo, como pediste */}
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-soft p-1 text-sm">
-        {(["all", "meta", "tiktok"] as const).map((p) => (
+      <div className="grid grid-cols-4 gap-1 rounded-xl bg-soft p-1 text-xs">
+        {(["all", ...PLATFORMS] as const).map((p) => (
           <button
             key={p}
             onClick={() => setPlatform(p)}
             className={`rounded-lg px-2 py-1.5 font-medium ${platform === p ? "bg-card text-ink shadow-sm" : "text-muted hover:text-ink"}`}
           >
-            {p === "all" ? t.nav.allPlatforms : p === "meta" ? t.nav.meta : t.nav.tiktok}
+            {p === "all" ? t.nav.allPlatforms : PLATFORM_LABEL[p]}
           </button>
         ))}
       </div>

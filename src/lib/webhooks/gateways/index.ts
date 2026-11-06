@@ -6,5 +6,6 @@ import { generic } from "./generic";
 import { hotmart } from "./hotmart";
 import { kiwify } from "./kiwify";
 import { stripe } from "./stripe";
+import { whop } from "./whop";
 
-export const adapters: Record<GatewayId, GatewayAdapter> = { digistore24, hotmart, kiwify, stripe, clickbank, generic };
+export const adapters: Record<GatewayId, GatewayAdapter> = { hotmart, stripe, whop, digistore24, kiwify, clickbank, generic };

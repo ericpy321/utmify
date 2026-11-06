@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { getDict } from "@/lib/i18n/server";
-import { gatewaySecrets, GATEWAYS, metaApiVersion, metaToken, serviceConfigured, siteUrl, syncSecret, tiktokAppId, tiktokSecret } from "@/lib/env";
+import { gatewaySecrets, GATEWAYS, googleApiVersion, googleConfigured, googleLoginCustomerId, metaApiVersion, metaToken, serviceConfigured, siteUrl, syncSecret, tiktokAppId, tiktokSecret } from "@/lib/env";
 import { admin } from "@/lib/supabase/admin";
 import { tiktokConnected } from "@/lib/sync/tiktok";
+import { googleConnected } from "@/lib/sync/google";
 import { localeFor } from "@/lib/currency";
 import { CopyBlock } from "@/components/copy-button";
 import { FindAccountsButton, ReprocessButton, SyncButton, TrackToggle } from "@/components/connect-controls";
@@ -12,13 +13,17 @@ import { PageHeader, StatusPill } from "@/components/ui";
 // Parámetros de URL con IDs (los nombres cambian y se repiten; el ID no).
 const META_PARAMS = "utm_source=fb&utm_campaign={{campaign.id}}&utm_medium={{adset.id}}&utm_content={{ad.id}}&utm_term={{placement}}";
 const TIKTOK_PARAMS = "utm_source=tiktok&utm_campaign=__CAMPAIGN_ID__&utm_medium=__AID__&utm_content=__CID__";
+// Google Ads (ValueTrack): {campaignid}, {adgroupid} y {creative} = id del anuncio.
+const GOOGLE_PARAMS = "utm_source=google&utm_campaign={campaignid}&utm_medium={adgroupid}&utm_content={creative}&utm_term={keyword}";
+// Los gateways que usas aparecen primero; el resto queda plegado.
+const MAIN_GATEWAYS = ["hotmart", "stripe", "whop"];
 
 const SECRET_VAR: Record<string, string> = {
-  digistore24: "DIGISTORE24_IPN_PASSPHRASE", hotmart: "HOTMART_HOTTOK", kiwify: "KIWIFY_WEBHOOK_TOKEN",
+  whop: "WHOP_WEBHOOK_SECRET", digistore24: "DIGISTORE24_IPN_PASSPHRASE", hotmart: "HOTMART_HOTTOK", kiwify: "KIWIFY_WEBHOOK_TOKEN",
   stripe: "STRIPE_WEBHOOK_SECRET", clickbank: "CLICKBANK_SECRET_KEY", generic: "WEBHOOK_SECRET",
 };
 const GATEWAY_NAME: Record<string, string> = {
-  digistore24: "Digistore24", hotmart: "Hotmart", kiwify: "Kiwify", stripe: "Stripe", clickbank: "ClickBank", generic: "",
+  whop: "Whop", digistore24: "Digistore24", hotmart: "Hotmart", kiwify: "Kiwify", stripe: "Stripe", clickbank: "ClickBank", generic: "",
 };
 
 // Fuera del componente: el lint de React no permite Date.now() durante el render.
@@ -35,24 +40,26 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
   const db = serviceConfigured ? admin() : null;
 
   const since = sevenDaysAgo();
-  const [accRes, runsRes, evRes, ttOk, unassigned] = await Promise.all([
+  const [accRes, runsRes, evRes, ttOk, unassigned, gOk] = await Promise.all([
     db?.from("ad_accounts").select("*").order("platform").order("name"),
     db?.from("sync_runs").select("source,started_at,finished_at,ok,detail").order("started_at", { ascending: false }).limit(10),
     db?.from("webhook_events").select("gateway,received_at,error,signature_valid").gte("received_at", since).order("received_at", { ascending: false }).limit(2000),
     db ? tiktokConnected() : Promise.resolve(false),
     db?.from("products").select("id", { count: "exact", head: true }).is("offer_id", null),
+    db ? googleConnected() : Promise.resolve(false),
   ]);
   const accounts = accRes?.data ?? [];
   const runs = runsRes?.data ?? [];
   const events = evRes?.data ?? [];
   const ttMsg = { ok: t.integ.ttOk, error: t.integ.ttError, estado_invalido: t.integ.ttState, sin_app: t.integ.ttNoApp }[String(sp.tiktok ?? "")];
+  const gMsg = { ok: t.integ.gOk, error: t.integ.gError, estado_invalido: t.integ.gState, sin_app: t.integ.gNoApp }[String(sp.google ?? "")];
 
   const statsFor = (g: string) => {
     const list = events.filter((e) => e.gateway === g);
     return { count: list.length, errors: list.filter((e) => e.error).length, last: list[0]?.received_at, lastError: list.find((e) => e.error)?.error };
   };
 
-  const accountTable = (platform: "meta" | "tiktok") => {
+  const accountTable = (platform: "meta" | "tiktok" | "google") => {
     const list = accounts.filter((a) => a.platform === platform);
     if (!list.length) return <p className="text-sm text-muted">{t.integ.noAccounts}</p>;
     return (
@@ -70,15 +77,40 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
     );
   };
 
+  const gatewayCard = (g: (typeof GATEWAYS)[number]) => {
+    const info = { name: GATEWAY_NAME[g] || t.integ.genericName, secretVar: SECRET_VAR[g], where: t.integ.where[g] };
+    const st = statsFor(g);
+    const hasSecret = Boolean(gatewaySecrets[g]);
+    return (
+      <div key={g} className="card flex flex-col gap-2 p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-medium">{info.name}</span>
+          <StatusPill status={st.count ? "active" : "paused"} label={st.count ? t.integ.connected : t.connect.notConnected} />
+        </div>
+        <div className="text-sm font-medium">{t.connect.webhookUrl}</div>
+        <CopyBlock text={`${origin}/api/webhooks/${g}${g === "generic" ? "?key=TU_WEBHOOK_SECRET" : ""}`} />
+        {info.where && <p className="text-xs text-muted">{info.where}</p>}
+        {g === "generic" && <p className="text-xs text-muted">{t.integ.genericHelp}</p>}
+        <div className="tnum flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+          <span>{t.integ.secret} <code>{info.secretVar}</code>: <b className={hasSecret ? "text-good" : "text-bad"}>{hasSecret ? t.integ.configured : t.integ.notConfigured}</b></span>
+          <span>{t.integ.lastEvent}: {when(st.last)}</span>
+          <span>{t.integ.events7d}: {st.count}</span>
+          {st.errors > 0 && <span className="text-bad">{t.integ.withError}: {st.errors} ({st.lastError})</span>}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <PageHeader title={t.connect.title} />
       {ttMsg && <div className={`card p-3 text-sm ${sp.tiktok === "ok" ? "text-good" : "text-bad"}`}>{ttMsg}</div>}
+      {gMsg && <div className={`card p-3 text-sm ${sp.google === "ok" ? "text-good" : "text-bad"}`}>{gMsg}</div>}
 
       {/* Plataformas de anuncios */}
       <section className="flex flex-col gap-3">
         <h2 className="font-medium">{t.connect.adPlatforms}</h2>
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           <div className="card flex flex-col gap-3 p-4">
             <div className="flex items-center justify-between">
               <span className="font-medium">{t.integ.meta}</span>
@@ -113,6 +145,28 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
               <CopyBlock text={TIKTOK_PARAMS} />
             </div>
           </div>
+
+          <div className="card flex flex-col gap-3 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{t.integ.google}</span>
+              <StatusPill status={gOk ? "active" : "paused"} label={gOk ? t.integ.connected : googleConfigured ? t.connect.notConnected : t.integ.missingApp} />
+            </div>
+            <p className="text-xs text-muted">{t.integ.envVar}: <code>GOOGLE_ADS_DEVELOPER_TOKEN</code> · <code>GOOGLE_ADS_CLIENT_ID</code> · <code>GOOGLE_ADS_CLIENT_SECRET</code> ({googleConfigured ? t.integ.configured : t.integ.notConfigured}) · <code>GOOGLE_ADS_LOGIN_CUSTOMER_ID</code> ({googleLoginCustomerId ? t.integ.configured : t.integ.notConfigured}) · API {googleApiVersion}</p>
+            <div>
+              <div className="mb-1 text-sm font-medium">{t.integ.googleRedirect}</div>
+              <CopyBlock text={`${origin}/api/google/callback`} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {googleConfigured && <a className="btn-primary" href="/api/google/connect">{t.integ.connectGoogle}</a>}
+              {gOk && <FindAccountsButton platform="google" />}
+            </div>
+            {accountTable("google")}
+            <div>
+              <div className="mb-1 text-sm font-medium">{t.connect.urlParams}</div>
+              <CopyBlock text={GOOGLE_PARAMS} />
+              <p className="mt-1 text-xs text-muted">{t.integ.googleParams}</p>
+            </div>
+          </div>
         </div>
         <p className="text-xs text-muted">{t.connect.paramsHelp}</p>
       </section>
@@ -127,30 +181,14 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
           </div>
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
-          {GATEWAYS.map((g) => {
-            const info = { name: GATEWAY_NAME[g] || t.integ.genericName, secretVar: SECRET_VAR[g], where: t.integ.where[g] };
-            const st = statsFor(g);
-            const hasSecret = Boolean(gatewaySecrets[g]);
-            return (
-              <div key={g} className="card flex flex-col gap-2 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{info.name}</span>
-                  <StatusPill status={st.count ? "active" : "paused"} label={st.count ? t.integ.connected : t.connect.notConnected} />
-                </div>
-                <div className="text-sm font-medium">{t.connect.webhookUrl}</div>
-                <CopyBlock text={`${origin}/api/webhooks/${g}${g === "generic" ? "?key=TU_WEBHOOK_SECRET" : ""}`} />
-                {info.where && <p className="text-xs text-muted">{info.where}</p>}
-                {g === "generic" && <p className="text-xs text-muted">{t.integ.genericHelp}</p>}
-                <div className="tnum flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                  <span>{t.integ.secret} <code>{info.secretVar}</code>: <b className={hasSecret ? "text-good" : "text-bad"}>{hasSecret ? t.integ.configured : t.integ.notConfigured}</b></span>
-                  <span>{t.integ.lastEvent}: {when(st.last)}</span>
-                  <span>{t.integ.events7d}: {st.count}</span>
-                  {st.errors > 0 && <span className="text-bad">{t.integ.withError}: {st.errors} ({st.lastError})</span>}
-                </div>
-              </div>
-            );
-          })}
+          {GATEWAYS.filter((g) => MAIN_GATEWAYS.includes(g)).map(gatewayCard)}
         </div>
+        <details className="group">
+          <summary className="cursor-pointer text-sm text-muted hover:text-ink">{t.integ.otherGateways}</summary>
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            {GATEWAYS.filter((g) => !MAIN_GATEWAYS.includes(g)).map(gatewayCard)}
+          </div>
+        </details>
       </section>
 
       {/* Script de rastreo */}
