@@ -119,7 +119,7 @@ export class MetricsEngine {
       if (r.value == null) fxMissing = true;
       else spend += r.value;
     }
-    let revenue = 0, net = 0, netMissing = 0, sales = 0, orders = 0, mainAll = 0, attributed = 0;
+    let revenue = 0, net = 0, netMissing = 0, sales = 0, orders = 0, attributed = 0;
     const refunds = { count: 0, amount: 0 };
     const chargebacks = { count: 0, amount: 0 };
     for (const r of this.saleRows(from, to)) {
@@ -140,7 +140,6 @@ export class MetricsEngine {
         chargebacks.count++;
         chargebacks.amount += r.gross;
       }
-      if (s.productKind === "main") mainAll++;
     }
     const spendV = this.hasSpendSource && !fxMissing ? spend : null;
     const spendTax = spendV == null ? null : spendV * (this.s.adSpendTaxPct / 100);
@@ -154,7 +153,8 @@ export class MetricsEngine {
       cpa: spendV != null && sales > 0 ? spendV / sales : null,
       aov: sales > 0 ? revenue / sales : null,
       sales, orders, refunds, chargebacks,
-      attributedPct: mainAll > 0 && !this.attributionFilterActive ? attributed / Math.max(1, sales) : null,
+      // Sin ventas principales aprobadas no hay porcentaje que mostrar ("sin datos", nunca 0%).
+      attributedPct: sales > 0 && !this.attributionFilterActive ? attributed / sales : null,
       fxMissing,
     };
   }
