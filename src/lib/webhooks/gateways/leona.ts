@@ -15,8 +15,12 @@ export const leona: GatewayAdapter = {
   parse(p) {
     const phone = str(first(p, "phone", "lead_number")).replace(/\D/g, "");
     // Acepta "35000", "35.000", "Gs. 35.000" o "35.000,50": se lee desde el primer número.
-    const rawAmount = str(p.amount).replace(/^[^\d]+/, "").replace(/[^\d.,]/g, "");
-    const amount = numOrNull(rawAmount.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+    const toAmount = (v: unknown) => {
+      const raw = str(v).replace(/^[^\d]+/, "").replace(/[^\d.,]/g, "");
+      return numOrNull(raw.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+    };
+    // El flujo manda el valor del comprobante y el registrado en la venta; se usa el primero que sea un número.
+    const amount = toAmount(p.amount) ?? toAmount(p.amount_sale);
     const occurredAt = parseDate(first(p, "sold_at", "created_at")) ?? Date.now();
     // La venta importada trae su id de Leona; la del flujo no, así que se arma con teléfono + minuto.
     const id = str(p.sale_id) || `${phone}-${Math.floor(occurredAt / 60_000)}`;
