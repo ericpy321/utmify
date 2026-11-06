@@ -6,8 +6,22 @@ import { collectTracking, first, numOrNull, parseDate, readJson, safeEqual, str 
 // La venta trae el id del anuncio de Meta (source_id) cuando el cliente vino de un anuncio "clic a WhatsApp".
 const isAdId = (v: string) => /^\d{10,25}$/.test(v); // descarta variables que Leona no reemplazó, ej "{customer.x}"
 
+/** Leona guarda el cuerpo como "{clave:valor,clave:valor}" (sin comillas). Si no es JSON válido, se lee así. */
+export function readLeonaBody(raw: string): Record<string, unknown> {
+  const json = readJson(raw);
+  if (Object.keys(json).length) return json;
+  const inner = raw.trim().replace(/^\{/, "").replace(/\}$/, "");
+  const out: Record<string, unknown> = {};
+  for (const part of inner.split(",")) {
+    const i = part.indexOf(":");
+    if (i <= 0) continue;
+    out[part.slice(0, i).trim().replace(/^"|"$/g, "")] = part.slice(i + 1).trim().replace(/^"|"$/g, "");
+  }
+  return out;
+}
+
 export const leona: GatewayAdapter = {
-  read: (raw) => readJson(raw),
+  read: (raw) => readLeonaBody(raw),
   verify(_raw, _p, h, url, secret) {
     const got = url.searchParams.get("key") ?? h.get("x-webhook-secret") ?? "";
     return !!secret && !!got && safeEqual(got, secret);
