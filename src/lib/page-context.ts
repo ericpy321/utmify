@@ -10,8 +10,9 @@ type SP = Record<string, string | string[] | undefined>;
 
 /** Todo lo que una pantalla necesita: idioma, configuración, datos, filtros y formateadores. */
 export async function loadPage(spPromise: Promise<SP>) {
-  const [sp, { lang, t }, settings, data] = await Promise.all([spPromise, getDict(), getSettings(), getDataset()]);
+  const [sp, { lang, t }, settings] = await Promise.all([spPromise, getDict(), getSettings()]);
   const f = parseFilters(sp, settings);
+  const data = await getDataset(f);
   const engine = new MetricsEngine(data, f, settings);
   const money = (v: number | null | undefined, compact = false) => (v == null ? t.common.noData : formatMoney(v, f.currency, lang, compact));
   const num = (v: number | null | undefined, d = 0) => (v == null ? t.common.noData : formatNumber(v, lang, d));

@@ -91,6 +91,7 @@ export interface Sale {
   adsetId: string | null;
   adId: string | null;
   sourcePage: string | null; // página del embudo donde se generó el checkout, si se conoce
+  productName?: string; // nombre que mandó el gateway (si el producto aún no está asignado)
 }
 
 export interface CheckoutEvent {
@@ -149,4 +150,6 @@ export interface Dataset {
   creatives: CreativeMeta[];
   /** Plataformas cuyo gasto ya se sincronizó al menos una vez. Sin esto, el gasto se muestra como "sin datos". */
   spendSources: Platform[];
+  /** Totales de toda la vida por anuncio, ya en la moneda del panel (datos reales; el ejemplo los calcula). */
+  adLifetime?: Map<string, { spend: number; revenue: number; net: number; sales: number }>;
 }

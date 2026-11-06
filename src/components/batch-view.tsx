@@ -6,6 +6,7 @@ import { StatusPillClient } from "./status-pill-client";
 import { classify, type CreativeNumbers, type CreativeStatus } from "@/lib/creative-status";
 import { formatMoney, formatNumber } from "@/lib/currency";
 import type { Settings } from "@/lib/types";
+import { setCreativeMeta } from "@/app/(app)/settings/actions";
 
 export interface BatchCreative extends CreativeNumbers {
   copywriter: string | null;
@@ -16,7 +17,16 @@ export interface BatchCreative extends CreativeNumbers {
   format: number;
 }
 
-export function BatchView({ creatives, finished, settings, currency }: { creatives: BatchCreative[]; finished: boolean; settings: Settings; currency: string }) {
+// Campo editable (copy / editor): se guarda al salir del campo. Solo con la base conectada.
+function MetaInput({ code, offerId, field, value }: { code: string; offerId: string; field: "copywriter" | "editor"; value: string | null }) {
+  const [v, setV] = useState(value ?? "");
+  return (
+    <input className="input h-8 w-28" value={v} onChange={(e) => setV(e.target.value)}
+      onBlur={() => { if (v !== (value ?? "")) void setCreativeMeta(code, offerId, field, v); }} />
+  );
+}
+
+export function BatchView({ creatives, finished, settings, currency, offerId, editable }: { creatives: BatchCreative[]; finished: boolean; settings: Settings; currency: string; offerId: string; editable: boolean }) {
   const { t, lang } = useI18n();
   const [rules, setRules] = useState(settings.rules);
   const [q, setQ] = useState("");
@@ -73,8 +83,12 @@ export function BatchView({ creatives, finished, settings, currency }: { creativ
                   <div className="font-mono text-xs font-medium">{c.code}</div>
                   <div className="text-xs text-muted">{t.creatives.hook} {c.hook} · {t.creatives.format} {c.format}</div>
                 </td>
-                <td className="px-3 py-2">C{c.copy}{c.copywriter ? ` · ${c.copywriter}` : ""}</td>
-                <td className="px-3 py-2">{c.editor ?? <span className="text-muted">—</span>}</td>
+                <td className="px-3 py-2">
+                  <div className="flex items-center gap-2">C{c.copy}
+                    {editable ? <MetaInput code={c.code} offerId={offerId} field="copywriter" value={c.copywriter} /> : c.copywriter ? ` · ${c.copywriter}` : ""}
+                  </div>
+                </td>
+                <td className="px-3 py-2">{editable ? <MetaInput code={c.code} offerId={offerId} field="editor" value={c.editor} /> : c.editor ?? <span className="text-muted">—</span>}</td>
                 <td className="px-3 py-2">{c.platforms.map((p) => (p === "meta" ? "Meta" : "TikTok")).join(", ")}</td>
                 <td className="px-3 py-2 text-right">{formatNumber(c.sales, lang)}</td>
                 <td className="px-3 py-2 text-right">{money(c.cpa)}</td>

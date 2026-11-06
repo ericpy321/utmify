@@ -77,7 +77,7 @@ const EDITORS = ["Equipo A", "Equipo B", "Freelancer", "Lucas"];
 const SOURCE_PAGES = ["quiz/paso-3", "vsl/sin-boton", "advertorial/v2"];
 
 const BASE_FX: Record<string, number> = {
-  BRL: 5.45, EUR: 0.93, MXN: 18.6, COP: 4050, ARS: 1080, CLP: 945, PEN: 3.76, GBP: 0.79,
+  BRL: 5.45, PYG: 7900, UYU: 40.2, BOB: 6.91, EUR: 0.93, MXN: 18.6, COP: 4050, ARS: 1080, CLP: 945, PEN: 3.76, GBP: 0.79,
 };
 
 let cache: { builtAtHour: number; data: Dataset } | null = null;

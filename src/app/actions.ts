@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { LANGS, type Lang } from "@/lib/i18n/dictionaries";
 import { requireUser } from "@/lib/auth";
-import { sanitizeSettings } from "@/lib/settings";
+import { persistSettings, sanitizeSettings } from "@/lib/settings";
 import type { Settings } from "@/lib/types";
 
 const YEAR = 60 * 60 * 24 * 365;
@@ -18,6 +18,11 @@ export async function setLang(lang: string) {
 export async function saveSettings(input: Partial<Settings>) {
   await requireUser();
   const clean = sanitizeSettings(input);
+  // Con la base conectada se guarda en la tabla `settings`; si no, en una cookie.
+  if (await persistSettings(clean)) {
+    revalidatePath("/", "layout");
+    return clean;
+  }
   (await cookies()).set("settings", JSON.stringify(clean), {
     path: "/", maxAge: YEAR, sameSite: "lax", httpOnly: true, secure: process.env.NODE_ENV === "production",
   });

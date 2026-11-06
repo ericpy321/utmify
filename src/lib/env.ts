@@ -20,3 +20,37 @@ export function isAllowedEmail(email: string | null | undefined) {
 
 /** Solo en `next dev` y sin Supabase: deja ver el panel en local para desarrollar. Nunca en producción. */
 export const demoWithoutAuth = !supabaseConfigured && process.env.NODE_ENV === "development";
+
+// --- Claves solo de servidor (nunca NEXT_PUBLIC_) ---------------------------------------
+/** Clave secreta de Supabase (sb_secret_… o service_role). Salta RLS: solo se usa en el servidor. */
+export const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+export const serviceConfigured = Boolean(supabaseUrl && supabaseSecretKey);
+
+/** Token del usuario del sistema de Meta (no vence). Permiso: ads_read. */
+export const metaToken = process.env.META_ACCESS_TOKEN ?? "";
+/** Versión de la Marketing API. Se puede subir sin tocar código cambiando la variable. */
+export const metaApiVersion = process.env.META_API_VERSION || "v25.0";
+
+/** App de TikTok for Business (portal de desarrolladores). */
+export const tiktokAppId = process.env.TIKTOK_APP_ID ?? "";
+export const tiktokSecret = process.env.TIKTOK_APP_SECRET ?? "";
+
+/** Secreto que protege /api/sync (lo usa pg_cron desde Supabase). */
+export const syncSecret = process.env.SYNC_SECRET ?? "";
+
+/** Secretos de cada gateway, para validar que el evento vino de ahí. */
+export const gatewaySecrets = {
+  digistore24: process.env.DIGISTORE24_IPN_PASSPHRASE ?? "",
+  hotmart: process.env.HOTMART_HOTTOK ?? "",
+  kiwify: process.env.KIWIFY_WEBHOOK_TOKEN ?? "",
+  stripe: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  clickbank: process.env.CLICKBANK_SECRET_KEY ?? "",
+  generic: process.env.WEBHOOK_SECRET ?? "",
+};
+export type GatewayId = keyof typeof gatewaySecrets;
+export const GATEWAYS = Object.keys(gatewaySecrets) as GatewayId[];
+
+export function siteUrl(fallbackHost?: string | null) {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  return fallbackHost ? `https://${fallbackHost}` : "";
+}

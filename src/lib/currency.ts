@@ -2,8 +2,12 @@
 import type { CurrencyCode, FxDay } from "./types";
 
 export const SUPPORTED_CURRENCIES: CurrencyCode[] = [
-  "USD", "BRL", "EUR", "MXN", "COP", "ARS", "CLP", "PEN", "GBP",
+  "USD", "BRL", "PYG", "EUR", "MXN", "COP", "ARS", "CLP", "PEN", "UYU", "BOB", "GBP",
 ];
+
+/** Monedas sin centavos: los montos en unidades mínimas (Stripe, Meta) no se dividen por 100. */
+export const ZERO_DECIMAL = new Set(["PYG", "CLP", "JPY", "KRW", "VND", "ISK", "UGX", "XAF", "XOF", "BIF", "DJF", "GNF", "KMF", "MGA", "RWF", "VUV", "XPF"]);
+export const minorFactor = (cur: string) => (ZERO_DECIMAL.has(cur.toUpperCase()) ? 1 : 100);
 
 export class FxTable {
   private byDate = new Map<string, FxDay>();
@@ -46,13 +50,18 @@ export class FxTable {
 const LOCALES: Record<string, string> = { en: "en-US", es: "es-419", pt: "pt-BR" };
 export const localeFor = (lang: string) => LOCALES[lang] ?? "en-US";
 
+// Cada moneda usa sus decimales propios (el guaraní no tiene centavos). En modo compacto, sin decimales.
+const moneyFormatters = new Map<string, Intl.NumberFormat>();
 export function formatMoney(value: number, currency: CurrencyCode, lang: string, compact = false) {
-  return new Intl.NumberFormat(localeFor(lang), {
-    style: "currency",
-    currency,
-    maximumFractionDigits: compact ? 0 : 2,
-    minimumFractionDigits: compact ? 0 : 2,
-  }).format(value);
+  const key = `${lang}|${currency}|${compact}`;
+  let f = moneyFormatters.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(localeFor(lang), compact
+      ? { style: "currency", currency, maximumFractionDigits: 0, minimumFractionDigits: 0 }
+      : { style: "currency", currency });
+    moneyFormatters.set(key, f);
+  }
+  return f.format(value);
 }
 
 export function formatNumber(value: number, lang: string, digits = 0) {

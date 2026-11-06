@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { demoWithoutAuth, isAllowedEmail, supabaseConfigured, supabaseKey, supabaseUrl } from "../env";
 
 // Rutas que no piden login: la pantalla de login, la vuelta del enlace mágico,
-// los webhooks de los gateways (tienen su propia validación) y la sincronización (protegida por secreto).
-const PUBLIC_PREFIXES = ["/login", "/auth/", "/api/webhooks/", "/api/sync"];
+// los webhooks de los gateways (tienen su propia validación), la sincronización (protegida por secreto)
+// y el script de rastreo /t.js que se pega en las páginas del embudo.
+const PUBLIC_PREFIXES = ["/login", "/auth/", "/api/webhooks/", "/api/sync", "/t.js"];
 
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;

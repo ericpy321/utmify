@@ -264,7 +264,9 @@ export class MetricsEngine {
 
   /** Números de toda la vida por código de creativo (el mismo creativo en varias cuentas cuenta una vez). */
   creativeStats() {
-    const ads = this.byAd("", "", true);
+    const ads: Map<string, Agg> = this.data.adLifetime
+      ? new Map([...this.data.adLifetime].filter(([id]) => this.adPasses(id)).map(([id, a]) => [id, { ...a, netMissing: 0 }]))
+      : this.byAd("", "", true);
     const out = new Map<string, { code: string; offerCode: string; batch: string; spend: number; revenue: number; net: number; sales: number; platforms: Set<string>; ads: number }>();
     for (const [adId, a] of ads) {
       const ad = this.adById.get(adId)!;

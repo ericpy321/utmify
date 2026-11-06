@@ -100,7 +100,10 @@ export function isValidTimeZone(tz: string): boolean {
 
 /** Zonas más usadas por operaciones de LATAM, Brasil, EE. UU. y Europa. */
 export const COMMON_TIMEZONES = [
+  "America/Asuncion",
   "America/Sao_Paulo",
+  "America/Montevideo",
+  "America/La_Paz",
   "America/Mexico_City",
   "America/Bogota",
   "America/Lima",
