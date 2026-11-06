@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { getDict } from "@/lib/i18n/server";
+import { getSettings } from "@/lib/settings";
 import { gatewaySecrets, GATEWAYS, googleApiVersion, googleConfigured, googleLoginCustomerId, metaApiVersion, metaToken, serviceConfigured, siteUrl, syncSecret, tiktokAppId, tiktokSecret } from "@/lib/env";
 import { admin } from "@/lib/supabase/admin";
 import { tiktokConnected } from "@/lib/sync/tiktok";
@@ -32,10 +33,10 @@ function sevenDaysAgo() {
 }
 
 export default async function ConnectPage({ searchParams }: PageProps<"/connect">) {
-  const [{ t, lang }, sp] = await Promise.all([getDict(), searchParams]);
+  const [{ t, lang }, sp, settings] = await Promise.all([getDict(), searchParams, getSettings()]);
   const h = await headers();
   const origin = siteUrl(h.get("x-forwarded-host") ?? h.get("host"));
-  const dt = new Intl.DateTimeFormat(localeFor(lang), { dateStyle: "short", timeStyle: "short" });
+  const dt = new Intl.DateTimeFormat(localeFor(lang), { dateStyle: "short", timeStyle: "short", timeZone: settings.timezone });
   const when = (v: unknown) => (v ? dt.format(new Date(String(v))) : t.integ.never);
   const db = serviceConfigured ? admin() : null;
 
