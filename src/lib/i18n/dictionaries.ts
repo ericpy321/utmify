@@ -103,6 +103,7 @@ const es = {
     when: "Cuándo", ok: "OK", failed: "Error", assignProducts: "Asignar productos a ofertas", fx: "Cotizaciones",
     attribution: "Rastreo", saved: "Guardado",
     where: {
+      leona: "Bloque «Integración HTTP» después de «Venta aprobada» en cada flujo de venta, método POST a esta URL con la clave de LEONA_WEBHOOK_SECRET.",
       digistore24: "Configuración → Integraciones (IPN) → nueva conexión «Genérica». La frase-senha (SHA passphrase) es la misma de la variable.",
       hotmart: "Herramientas → Webhook → Nueva configuración, versión 2.0.0, eventos de compra. El hottok va en la variable.",
       kiwify: "Apps → Webhooks → Crear webhook con los eventos de compra. El token que te da Kiwify va en la variable.",
@@ -238,6 +239,7 @@ const en: Dict = {
     when: "When", ok: "OK", failed: "Error", assignProducts: "Assign products to offers", fx: "Exchange rates",
     attribution: "Tracking", saved: "Saved",
     where: {
+      leona: "“HTTP integration” block after “Approved sale” in each sales flow, POST to this URL with the LEONA_WEBHOOK_SECRET key.",
       digistore24: "Settings → Integrations (IPN) → new “Generic” connection. The SHA passphrase is the same as the variable.",
       hotmart: "Tools → Webhook → New configuration, version 2.0.0, purchase events. The hottok goes in the variable.",
       kiwify: "Apps → Webhooks → Create webhook with the purchase events. The token Kiwify gives you goes in the variable.",
@@ -371,6 +373,7 @@ const pt: Dict = {
     when: "Quando", ok: "OK", failed: "Erro", assignProducts: "Atribuir produtos às ofertas", fx: "Cotações",
     attribution: "Rastreio", saved: "Salvo",
     where: {
+      leona: "Bloco “Integração HTTP” depois de “Venda aprovada” em cada fluxo de venda, POST para esta URL com a chave de LEONA_WEBHOOK_SECRET.",
       digistore24: "Configurações → Integrações (IPN) → nova conexão “Genérica”. A frase-senha (SHA passphrase) é a mesma da variável.",
       hotmart: "Ferramentas → Webhook → Nova configuração, versão 2.0.0, eventos de compra. O hottok vai na variável.",
       kiwify: "Apps → Webhooks → Criar webhook com os eventos de compra. O token que a Kiwify dá vai na variável.",

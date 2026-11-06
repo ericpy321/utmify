@@ -40,6 +40,7 @@ export const syncSecret = process.env.SYNC_SECRET ?? "";
 
 /** Secretos de cada gateway, para validar que el evento vino de ahí. */
 export const gatewaySecrets = {
+  leona: process.env.LEONA_WEBHOOK_SECRET ?? "",
   hotmart: process.env.HOTMART_HOTTOK ?? "",
   stripe: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   whop: process.env.WHOP_WEBHOOK_SECRET ?? "",

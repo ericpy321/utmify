@@ -17,14 +17,14 @@ const TIKTOK_PARAMS = "utm_source=tiktok&utm_campaign=__CAMPAIGN_ID__&utm_medium
 // Google Ads (ValueTrack): {campaignid}, {adgroupid} y {creative} = id del anuncio.
 const GOOGLE_PARAMS = "utm_source=google&utm_campaign={campaignid}&utm_medium={adgroupid}&utm_content={creative}&utm_term={keyword}";
 // Los gateways que usas aparecen primero; el resto queda plegado.
-const MAIN_GATEWAYS = ["hotmart", "stripe", "whop"];
+const MAIN_GATEWAYS = ["leona", "hotmart", "stripe", "whop"];
 
 const SECRET_VAR: Record<string, string> = {
-  whop: "WHOP_WEBHOOK_SECRET", digistore24: "DIGISTORE24_IPN_PASSPHRASE", hotmart: "HOTMART_HOTTOK", kiwify: "KIWIFY_WEBHOOK_TOKEN",
+  leona: "LEONA_WEBHOOK_SECRET", whop: "WHOP_WEBHOOK_SECRET", digistore24: "DIGISTORE24_IPN_PASSPHRASE", hotmart: "HOTMART_HOTTOK", kiwify: "KIWIFY_WEBHOOK_TOKEN",
   stripe: "STRIPE_WEBHOOK_SECRET", clickbank: "CLICKBANK_SECRET_KEY", generic: "WEBHOOK_SECRET",
 };
 const GATEWAY_NAME: Record<string, string> = {
-  whop: "Whop", digistore24: "Digistore24", hotmart: "Hotmart", kiwify: "Kiwify", stripe: "Stripe", clickbank: "ClickBank", generic: "",
+  leona: "Leona Flow (WhatsApp)", whop: "Whop", digistore24: "Digistore24", hotmart: "Hotmart", kiwify: "Kiwify", stripe: "Stripe", clickbank: "ClickBank", generic: "",
 };
 
 // Fuera del componente: el lint de React no permite Date.now() durante el render.
@@ -89,7 +89,7 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
           <StatusPill status={st.count ? "active" : "paused"} label={st.count ? t.integ.connected : t.connect.notConnected} />
         </div>
         <div className="text-sm font-medium">{t.connect.webhookUrl}</div>
-        <CopyBlock text={`${origin}/api/webhooks/${g}${g === "generic" ? "?key=TU_WEBHOOK_SECRET" : ""}`} />
+        <CopyBlock text={`${origin}/api/webhooks/${g}${g === "generic" ? "?key=TU_WEBHOOK_SECRET" : g === "leona" ? "?key=TU_LEONA_WEBHOOK_SECRET" : ""}`} />
         {info.where && <p className="text-xs text-muted">{info.where}</p>}
         {g === "generic" && <p className="text-xs text-muted">{t.integ.genericHelp}</p>}
         <div className="tnum flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">

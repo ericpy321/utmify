@@ -36,6 +36,14 @@ export async function processEvent(gateway: string, ev: NormalizedEvent, rawEven
 
   if (ev.gross == null) throw new Error("El evento no trae el valor de la venta");
 
+  // Leona: la venta del flujo no trae id; si ya existe una del mismo cliente y valor en ±30 min, es la misma.
+  if (gateway === "leona" && ev.email) {
+    const { data: dup } = await db.from("sales").select("id").eq("gateway", "leona").eq("buyer_email", ev.email).eq("gross", ev.gross)
+      .gte("created_at_utc", new Date(ev.occurredAt - 30 * 60_000).toISOString())
+      .lte("created_at_utc", new Date(ev.occurredAt + 30 * 60_000).toISOString()).limit(1).maybeSingle();
+    if (dup) return "duplicada: ya registrada";
+  }
+
   const kind: ProductKind = ev.kindHint ?? product?.kind ?? "main";
   let attr = attributionFrom(ev.tracking);
   let parentOrderId = ev.parentOrderId ?? null;
